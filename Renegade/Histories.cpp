@@ -8,6 +8,7 @@ Histories::Histories() {
 void Histories::ClearAll() {
 	ClearKillerAndCounterMoves();
 	std::memset(&HistoryTables, 0, sizeof(HistoryTables));
+    std::memset(&CorrectionHistory, 0, sizeof(CorrectionHistory));
 	std::memset(ContinuationHistory.get(), 0, sizeof(Continuations));
 }
 
@@ -88,4 +89,33 @@ int Histories::GetHistoryScore(const Position& position, const Move& m, const ui
 		historyScore += (*ContinuationHistory)[position.GetPreviousMove(ply).piece][position.GetPreviousMove(ply).move.to][movedPiece][m.to];
 	}
 	return historyScore;
+}
+
+// Static evaluation correction history -----------------------------------------------------------
+
+void Histories::UpdateCorrection(const Position& position, const int16_t rawEval, const int16_t score, const int depth, const bool exactNode) {
+    // Constants based on a slightly older build of Alexandria
+    const int key = position.PawnHash() & (CorrectionEntryCount - 1);
+    const int target = std::clamp(score - rawEval, -256, 256) * CorrectionGranularity;
+    constexpr int correctionInertia = 4096;
+
+    const int targetWeight = exactNode ? std::min(4 * depth * depth + 8 * depth + 4, 512)
+                                       : std::min(3 * depth * depth + 6 * depth + 3, 384);
+
+    // Linearly interpolate between the current and the "move towards" value
+    // unlike gravity, there's no explicit force to center the values around zero
+    constexpr int correctionHistoryCap = CorrectionCap * CorrectionGranularity;
+    int32_t& entry = CorrectionHistory[position.Turn()][key];
+    entry = ((correctionInertia - targetWeight) * entry + targetWeight * target) / correctionInertia;
+    entry = std::clamp(entry, -correctionHistoryCap, correctionHistoryCap);
+}
+
+int Histories::AdjustStaticEvaluation(const Position& position, const int16_t rawEval) const {
+    constexpr int correctionThreshold = 8192;
+
+    if (std::abs(rawEval) > correctionThreshold) return rawEval;
+
+    const int key = position.PawnHash() & (CorrectionEntryCount - 1);
+    const int corrected = rawEval + CorrectionHistory[position.Turn()][key] / CorrectionGranularity;
+    return std::clamp(corrected, -MateThreshold + 1, MateThreshold - 1);
 }
