@@ -320,7 +320,6 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 
 	// Check extensions
 	const bool inCheck = position.IsInCheck();
-	if (!rootNode && inCheck) depth += 1;
 
 	// Drop into quiescence search at depth 0
 	if (depth <= 0) {
@@ -468,7 +467,7 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 		}
 
 		// Singular extensions
-		int extension = 0;
+		int extension = inCheck;
 		if (singularCandidate && m == ttMove) {
 			const int singularMargin = depth * 2;
 			const int singularBeta = std::max(ttEval - singularMargin, -MateEval);
@@ -622,19 +621,24 @@ int Search::SearchQuiescence(Position& position, const int level, int alpha, int
 		Statistics.TranspositionHits += 1;
 	}
 
+    const bool inCheck = position.IsInCheck();
+    const MoveGen moveGenType = inCheck ? MoveGen::All : MoveGen::Noisy;
+
 	// Generate noisy moves and order them
 	MoveListStack[level].reset();
-	position.GenerateMoves(MoveListStack[level], MoveGen::Noisy, Legality::Pseudolegal);
+	position.GenerateMoves(MoveListStack[level], moveGenType, Legality::Pseudolegal);
 	OrderMovesQ(position, MoveListStack[level], level);
 	MovePicker movePicker(MoveListStack[level]);
 
 	// Search recursively
 	int bestScore = staticEval;
 	int scoreType = ScoreType::UpperBound;
+    int legalMoveCount = 0;
 	while (movePicker.hasNext()) {
 		const auto& [m, order] = movePicker.get();
 		if (!position.IsLegalMove(m)) continue;
-		if (!StaticExchangeEval(position, m, 0)) continue; // Quiescence search SEE pruning (+39 elo)
+        legalMoveCount++;
+		if (!inCheck && !StaticExchangeEval(position, m, 0)) continue; // Quiescence search SEE pruning (+39 elo)
 		Statistics.Nodes += 1;
 		Statistics.QuiescenceNodes += 1;
 
@@ -658,6 +662,11 @@ int Search::SearchQuiescence(Position& position, const int level, int alpha, int
 			}
 		}
 	}
+
+    if (inCheck && legalMoveCount == 0) {
+        return LosingMateScore(level);
+    }
+
 	if (!aborting) TranspositionTable.Store(hash, 0, bestScore, scoreType, EmptyMove, level);
 	return bestScore;
 }
