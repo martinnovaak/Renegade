@@ -406,10 +406,10 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 		if (!pvNode && (bestScore > -MateThreshold) && (order < 90000) && !DatagenMode) {
 
 			// Late-move pruning (+9 elo)
-			if (isQuiet && !inCheck && (depth < 5)) {
-				const int lmpCount = 3 + depth * (depth - !improving);
-				if (legalMoveCount > lmpCount) break;
-			}
+            if (isQuiet && !inCheck) {
+                const int lmpCount = 3 + depth * depth / (2 - improving);
+                if (legalMoveCount > lmpCount) continue;
+            }
 
 			// Performing futility pruning
 			if (isQuiet && (order < 32678) && (alpha < MateThreshold) && futilityPrunable) break;
