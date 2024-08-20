@@ -84,11 +84,11 @@ void Histories::UpdateCorrection(const Position& position, const int rawEval, co
 
     int32_t& materialValue = MaterialCorrectionHistory[position.Turn()][materialKey];
     materialValue = ((256 - weight) * materialValue + weight * diff) / 256;
-    materialValue = std::clamp(materialValue, -12'288, 12'288);
+    materialValue = std::clamp(materialValue, -8'192, 8'192);
 
     int32_t& keyValue = MaterialCorrectionHistory[position.Turn()][pawnKey];
     keyValue = ((256 - weight) * keyValue + weight * diff) / 256;
-    keyValue = std::clamp(keyValue, -12'288, 12'288);
+    keyValue = std::clamp(keyValue, -8'192, 8'192);
 }
 
 int Histories::AdjustStaticEvaluation(const Position& position, const int rawEval) const {
