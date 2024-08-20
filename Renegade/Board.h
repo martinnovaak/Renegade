@@ -96,6 +96,7 @@ struct Board {
 	void ApplyMove(const Move& move, const CastlingConfiguration& castling);
 
     uint64_t CalculateMaterialKey() const;
+    uint64_t CalculatePawnKey() const;
 
 };
 

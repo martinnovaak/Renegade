@@ -130,6 +130,10 @@ public:
         return States.back().CalculateMaterialKey();
     }
 
+    inline uint64_t GetPawnKey() const {
+        return States.back().CalculatePawnKey();
+    }
+
 	uint64_t AttackersOfSquare(const bool attackingSide, const uint8_t square) const;
 
 	inline uint64_t WhitePawnBits() const { return States.back().WhitePawnBits; }

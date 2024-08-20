@@ -10,6 +10,7 @@ void Histories::ClearAll() {
 	std::memset(&QuietHistory, 0, sizeof(ThreatHistoryTable));
 	std::memset(Continuations.get(), 0, sizeof(ContinuationTable));
     std::memset(&MaterialCorrectionHistory, 0, sizeof(MaterialCorrectionHistory));
+    std::memset(&PawnCorrectionHistory, 0, sizeof(PawnCorrectionHistory));
 }
 
 void Histories::ClearKillerAndCounterMoves() {
@@ -76,18 +77,24 @@ int Histories::GetHistoryScore(const Position& position, const Move& m, const ui
 // Static evaluation correction history -----------------------------------------------------------
 
 void Histories::UpdateCorrection(const Position& position, const int rawEval, const int score, const int depth) {
-    const uint64_t material_key = position.GetMaterialKey() % 32768;
+    const uint64_t materialKey = position.GetMaterialKey() % 32768;
+    const uint64_t pawnKey = position.GetPawnKey() % 16384;
     const int diff = (score - rawEval) * 256;
     const int weight = std::min(16, depth + 1);
 
-    int32_t& value = MaterialCorrectionHistory[position.Turn()][material_key];
-    value = ((256 - weight) * value + weight * diff) / 256;
-    value = std::clamp(value, -12'288, 12'288);
+    int32_t& materialValue = MaterialCorrectionHistory[position.Turn()][materialKey];
+    materialValue = ((256 - weight) * materialValue + weight * diff) / 256;
+    materialValue = std::clamp(materialValue, -12'288, 12'288);
+
+    int32_t& keyValue = MaterialCorrectionHistory[position.Turn()][pawnKey];
+    keyValue = ((256 - weight) * keyValue + weight * diff) / 256;
+    keyValue = std::clamp(keyValue, -12'288, 12'288);
 }
 
 int Histories::AdjustStaticEvaluation(const Position& position, const int rawEval) const {
     if (std::abs(rawEval) > 10'000) return rawEval;
 
-    const uint64_t material_key = position.GetMaterialKey() % 32768;
-    return rawEval + MaterialCorrectionHistory[position.Turn()][material_key] / 256;
+    const uint64_t materialKey = position.GetMaterialKey() % 32768;
+    const uint64_t pawnKey = position.GetPawnKey() % 16384;
+    return rawEval + (MaterialCorrectionHistory[position.Turn()][materialKey] + PawnCorrectionHistory[position.Turn()][pawnKey]) / 256;
 }

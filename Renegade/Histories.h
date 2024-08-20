@@ -49,5 +49,6 @@ private:
 	ThreatHistoryTable QuietHistory;
 	std::unique_ptr<ContinuationTable> Continuations;
     std::array<std::array<int, 32768>, 2> MaterialCorrectionHistory;
+    std::array<std::array<int, 16384>, 2> PawnCorrectionHistory;
 };
 

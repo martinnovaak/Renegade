@@ -278,3 +278,20 @@ uint64_t Board::CalculateMaterialKey() const {
 
     return murmur_hash_3(material_key);
 }
+
+uint64_t Board::CalculatePawnKey() const {
+    uint64_t hash = 0;
+
+    uint64_t bits = WhitePawnBits;
+    while (bits != 0) {
+        const int sq = Popsquare(bits);
+        hash ^= Zobrist[64 * 1 + sq];
+    }
+    bits = BlackPawnBits;
+    while (bits != 0) {
+        const int sq = Popsquare(bits);
+        hash ^= Zobrist[64 * 0 + sq];
+    }
+
+    return hash;
+}
