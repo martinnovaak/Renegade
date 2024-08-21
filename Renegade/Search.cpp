@@ -360,7 +360,7 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 	}
 
 	// Internal iterative reductions
-	if (depth > 4 && ttMove.IsEmpty() && !singularSearch && (found || ttEntry.depth < depth - 4)) {
+	if (depth > 4 && !singularSearch && (ttMove.IsEmpty() || ttEntry.depth < depth - 4)) {
 		depth -= 1;
 	}
 
