@@ -158,7 +158,7 @@ Results Search::SearchMoves(Position& position, const bool display) {
 		// Obtain score
 		if (Depth < 5) {
 			// Regular negamax for shallow depths
-			score = SearchRecursive(position, Depth, 0, NegativeInfinity, PositiveInfinity);
+			score = SearchRecursive(position, Depth, 0, NegativeInfinity, PositiveInfinity, false);
 		}
 		else {
 			// Aspiration windows
@@ -179,7 +179,7 @@ Results Search::SearchMoves(Position& position, const bool display) {
 
 				//if (!settings.UciOutput) cout << "[" << alpha << ".." << beta << "] ";
 
-				score = SearchRecursive(position, searchDepth, 0, alpha, beta);
+				score = SearchRecursive(position, searchDepth, 0, alpha, beta, false);
 
 				if (score <= alpha) {
 					alpha = std::max(alpha - windowSize, NegativeInfinity);
@@ -246,7 +246,7 @@ Results Search::SearchMoves(Position& position, const bool display) {
 }
 
 // Recursively called during the alpha-beta search
-int Search::SearchRecursive(Position& position, int depth, const int level, int alpha, int beta) {
+int Search::SearchRecursive(Position& position, int depth, const int level, int alpha, int beta, bool cutnode) {
 
 	// Check search limits
 	const bool aborting = ShouldAbort();
@@ -345,7 +345,7 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 			}();
 			position.PushNullMove();
 			UpdateAccumulators(position, NullMove, 0, 0, level);
-			const int nmpScore = -SearchRecursive(position, depth - nmpReduction, level + 1, -beta, -beta + 1);
+			const int nmpScore = -SearchRecursive(position, depth - nmpReduction, level + 1, -beta, -beta + 1, !cutnode);
 			position.Pop();
 			if (nmpScore >= beta) {
 				return IsMateScore(nmpScore) ? beta : nmpScore;
@@ -423,7 +423,7 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 			const int singularBeta = std::max(ttEval - singularMargin, -MateEval);
 			const int singularDepth = (depth - 1) / 2;
 			ExcludedMoves[level] = m;
-			const int singularScore = SearchRecursive(position, singularDepth, level, singularBeta - 1, singularBeta);
+			const int singularScore = SearchRecursive(position, singularDepth, level, singularBeta - 1, singularBeta, cutnode);
 			ExcludedMoves[level] = EmptyMove;
 				
 			if (singularScore < singularBeta) {
@@ -450,7 +450,7 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 		UpdateAccumulators(position, m, movedPiece, capturedPiece, level);
 
 		if (legalMoveCount == 1) {
-			score = -SearchRecursive(position, depth - 1 + extension, level + 1, -beta, -alpha);
+			score = -SearchRecursive(position, depth - 1 + extension, level + 1, -beta, -alpha, false);
 		}
 		else {
 			int reduction = 0;
@@ -469,6 +469,9 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 				// Less reduction when the next ply only had a few fail-highs
 				if (CutoffCount[level] < 4) reduction -= 1;
 
+                // Reduce more on expected cutnodes
+                if (cutnode) reduction += 2;
+
 				// Adjust based on history
 				if (std::abs(order) < 80000) reduction -= std::clamp(order / 8192, -2, 2);
 
@@ -476,9 +479,9 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 			}
 
 			// Principal variation search
-			score = -SearchRecursive(position, depth - 1 - reduction, level + 1, -alpha - 1, -alpha);
-			if (score > alpha && reduction > 0) score = -SearchRecursive(position, depth - 1, level + 1, -alpha - 1, -alpha);
-			if (score > alpha && score < beta) score = -SearchRecursive(position, depth - 1, level + 1, -beta, -alpha);
+			score = -SearchRecursive(position, depth - 1 - reduction, level + 1, -alpha - 1, -alpha, true);
+			if (score > alpha && reduction > 0) score = -SearchRecursive(position, depth - 1, level + 1, -alpha - 1, -alpha, !cutnode);
+			if (score > alpha && score < beta) score = -SearchRecursive(position, depth - 1, level + 1, -beta, -alpha, true);
 		}
 		position.Pop();
 
