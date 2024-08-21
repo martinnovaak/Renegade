@@ -481,7 +481,7 @@ int Search::SearchRecursive(Position& position, int depth, const int level, int 
 			// Principal variation search
 			score = -SearchRecursive(position, depth - 1 - reduction, level + 1, -alpha - 1, -alpha, true);
 			if (score > alpha && reduction > 0) score = -SearchRecursive(position, depth - 1, level + 1, -alpha - 1, -alpha, !cutnode);
-			if (score > alpha && score < beta) score = -SearchRecursive(position, depth - 1, level + 1, -beta, -alpha, true);
+			if (score > alpha && score < beta) score = -SearchRecursive(position, depth - 1, level + 1, -beta, -alpha, false);
 		}
 		position.Pop();
 
