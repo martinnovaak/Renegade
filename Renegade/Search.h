@@ -35,7 +35,7 @@ public:
 
 private:
 	Results SearchMoves(Position& position, const bool display);
-	int SearchRecursive(Position& position, int depth, const int level, int alpha, int beta);
+	int SearchRecursive(Position& position, int depth, const int level, int alpha, int beta, bool cutnode);
 	int SearchQuiescence(Position& position, const int level, int alpha, int beta);
 
 	int Evaluate(const Position& position, const int level);
