@@ -11,6 +11,7 @@ void Histories::ClearAll() {
 	std::memset(&ContinuationHistory, 0, sizeof(ContinuationHistoryTable));
     std::memset(&MaterialCorrectionHistory, 0, sizeof(MaterialCorrectionTable));
     std::memset(&PawnsCorrectionHistory, 0, sizeof(PawnsCorrectionTable));
+    std::memset(&MinorCorrectionHistory, 0, sizeof(MinorCorrectionTable));
 }
 
 void Histories::ClearKillerAndCounterMoves() {
@@ -109,6 +110,11 @@ void Histories::UpdateCorrection(const Position& position, const int16_t rawEval
 	int32_t& pawnValue = PawnsCorrectionHistory[position.Turn()][pawnKey];
 	pawnValue = ((256 - weight) * pawnValue + weight * diff) / 256;
 	pawnValue = std::clamp(pawnValue, -6144, 6144);
+
+    const uint64_t minorKey = position.GetMinorKey() % 16384;
+    int32_t& minorValue = MinorCorrectionHistory[position.Turn()][minorKey];
+    minorValue = ((256 - weight) * minorValue + weight * diff) / 256;
+    minorValue = std::clamp(minorValue, -6144, 6144);
 }
 
 int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEval) const {
@@ -120,6 +126,9 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 	const uint64_t pawnKey = position.GetPawnKey() % 16384;
 	const int pawnCorrection = PawnsCorrectionHistory[position.Turn()][pawnKey] / 256;
 
-	const int correctedEval = rawEval + materialCorrection + pawnCorrection;
+    const uint64_t minorKey = position.GetMinorKey() % 16384;
+    const int minorCorrection = MinorCorrectionHistory[position.Turn()][minorKey] / 256;
+
+	const int correctedEval = rawEval + materialCorrection + pawnCorrection + minorCorrection;
     return std::clamp(correctedEval, -MateThreshold + 1, MateThreshold - 1);
 }
