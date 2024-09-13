@@ -129,6 +129,6 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
     const uint64_t minorKey = position.GetMinorKey() % 16384;
     const int minorCorrection = MinorCorrectionHistory[position.Turn()][minorKey] / 256;
 
-	const int correctedEval = rawEval + materialCorrection + pawnCorrection + minorCorrection;
+	const int correctedEval = rawEval + (materialCorrection + 2 * pawnCorrection + 2 * minorCorrection) / 3;
     return std::clamp(correctedEval, -MateThreshold + 1, MateThreshold - 1);
 }
