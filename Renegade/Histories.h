@@ -55,7 +55,7 @@ private:
 
 	// Evaluation correction history:
 	using MaterialCorrectionTable = std::array<std::array<int32_t, 32768>, 2>;
-	using PawnsCorrectionTable = std::array<std::array<int32_t, 16384>, 2>;
+	using PawnsCorrectionTable = std::array<std::array<std::array<int32_t, 16384>, 4>, 2>;
 	MaterialCorrectionTable MaterialCorrectionHistory;
 	PawnsCorrectionTable PawnsCorrectionHistory;
 };

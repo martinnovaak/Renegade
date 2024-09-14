@@ -106,7 +106,7 @@ void Histories::UpdateCorrection(const Position& position, const int16_t rawEval
 	materialValue = std::clamp(materialValue, -6144, 6144);
 
 	const uint64_t pawnKey = position.GetPawnKey() % 16384;
-	int32_t& pawnValue = PawnsCorrectionHistory[position.Turn()][pawnKey];
+	int32_t& pawnValue = PawnsCorrectionHistory[position.Turn()][std::max(position.GetPawnCount() - 1, 0) / 4][pawnKey];
 	pawnValue = ((256 - weight) * pawnValue + weight * diff) / 256;
 	pawnValue = std::clamp(pawnValue, -6144, 6144);
 }
@@ -118,7 +118,7 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 	const int materialCorrection = MaterialCorrectionHistory[position.Turn()][materialKey] / 256;
 
 	const uint64_t pawnKey = position.GetPawnKey() % 16384;
-	const int pawnCorrection = PawnsCorrectionHistory[position.Turn()][pawnKey] / 256;
+	const int pawnCorrection = PawnsCorrectionHistory[position.Turn()][std::max(position.GetPawnCount() - 1, 0) / 4][pawnKey] / 256;
 
 	const int correctedEval = rawEval + materialCorrection + pawnCorrection;
     return std::clamp(correctedEval, -MateThreshold + 1, MateThreshold - 1);
