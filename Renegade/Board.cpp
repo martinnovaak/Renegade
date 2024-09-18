@@ -109,6 +109,24 @@ uint64_t Board::CalculateHash() const {
 	return hash;
 }
 
+uint64_t Board::CalculateCenterKey() const {
+    constexpr std::array<int, 14> pieceToZobristIndex = {0, 0, 1, 2, 3, 4, 5, 0, 6, 7, 8, 9, 10, 11};
+
+    uint64_t key = 0;
+
+    for (uint8_t rank = 2; rank <= 6; rank++) {
+        for (uint8_t file = 2; file <= 6; file++) {
+            auto square = Square(rank, file);
+            auto piece = GetPieceAt(square);
+            if (piece != Piece::None) {
+                key |= Zobrist[64 * pieceToZobristIndex[piece] + square];
+            }
+        }
+    }
+
+    return key;
+}
+
 void Board::ApplyMove(const Move& move, const CastlingConfiguration& castling) {
 
 	assert(!move.IsNull());

@@ -12,6 +12,7 @@ void Histories::ClearAll() {
     std::memset(&MaterialCorrectionHistory, 0, sizeof(MaterialCorrectionTable));
     std::memset(&PawnsCorrectionHistory, 0, sizeof(PawnsCorrectionTable));
     std::memset(&FollowUpCorrectionHistory, 0, sizeof(FollowUpCorrectionTable));
+    std::memset(&CenterCorrectionHistory, 0, sizeof(CenterCorrectionTable));
 }
 
 void Histories::ClearKillerAndCounterMoves() {
@@ -118,6 +119,11 @@ void Histories::UpdateCorrection(const Position& position, const int16_t rawEval
 		followUpValue = ((256 - weight) * followUpValue + weight * diff) / 256;
 		followUpValue = std::clamp(followUpValue, -6144, 6144);
 	}
+
+    const uint64_t centerKey = position.GetCenterKey() % 16384;
+    int32_t& centerValue = CenterCorrectionHistory[position.Turn()][centerKey];
+    centerValue = ((256 - weight) * centerValue + weight * diff) / 256;
+    centerValue = std::clamp(centerValue, -6144, 6144);
 }
 
 int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEval) const {
@@ -129,6 +135,8 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 	const uint64_t pawnKey = position.GetPawnKey() % 16384;
 	const int pawnCorrection = PawnsCorrectionHistory[position.Turn()][pawnKey] / 256;
 
+    const uint64_t centerKey = position.GetCenterKey() % 16384;
+    const int centerCorrection = CenterCorrectionHistory[position.Turn()][centerKey] / 256;
 
 	const int lastMoveCorrection = [&] {
 		if (position.Moves.size() < 2) return 0;
@@ -137,6 +145,6 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 		return FollowUpCorrectionHistory[prev2.piece][prev2.move.to][prev1.piece][prev1.move.to] / 256;
 	}();
 
-	const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection) * 2 / 3;
+	const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection + centerCorrection) * 2 / 3;
     return std::clamp(correctedEval, -MateThreshold + 1, MateThreshold - 1);
 }
