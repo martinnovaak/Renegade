@@ -119,7 +119,7 @@ uint64_t Board::CalculateCenterKey() const {
             auto square = Square(rank, file);
             auto piece = GetPieceAt(square);
             if (piece != Piece::None) {
-                key |= Zobrist[64 * pieceToZobristIndex[piece] + square];
+                key ^= Zobrist[64 * pieceToZobristIndex[piece] + square];
             }
         }
     }
