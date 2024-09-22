@@ -97,6 +97,8 @@ struct Board {
 
     uint64_t CalculateMaterialKey() const;
 
+    uint64_t CalculateCenterKey() const;
+
 };
 
 static_assert(sizeof(Board) == 176);

@@ -269,3 +269,21 @@ uint64_t Board::CalculateMaterialKey() const {
 
     return MurmurHash3(material_key);
 }
+
+uint64_t Board::CalculateCenterKey() const {
+    constexpr std::array<int, 14> pieceToZobristIndex = {0, 0, 1, 2, 3, 4, 5, 0, 6, 7, 8, 9, 10, 11};
+
+    uint64_t key = 0;
+
+    for (uint8_t rank = 3; rank <= 4; rank++) {
+        for (uint8_t file = 0; file < 8; file++) {
+            auto square = Square(rank, file);
+            auto piece = GetPieceAt(square);
+            if (piece != Piece::None) {
+                key ^= Zobrist[64 * pieceToZobristIndex[piece] + square];
+            }
+        }
+    }
+
+    return key;
+}
