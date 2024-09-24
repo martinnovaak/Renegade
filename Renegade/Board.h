@@ -2,6 +2,8 @@
 #include "Move.h"
 #include "Utils.h"
 
+#include <tuple>
+
 // Magic lookup tables
 uint64_t GetBishopAttacks(const uint8_t square, const uint64_t occupancy);
 uint64_t GetRookAttacks(const uint8_t square, const uint64_t occupancy);
@@ -96,6 +98,8 @@ struct Board {
 	void ApplyMove(const Move& move, const CastlingConfiguration& castling);
 
     uint64_t CalculateMaterialKey() const;
+
+    std::tuple<uint64_t, uint64_t, uint64_t, uint64_t> CalculateStripeKeys() const;
 
 };
 

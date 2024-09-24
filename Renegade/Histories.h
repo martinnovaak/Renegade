@@ -57,8 +57,10 @@ private:
 	using MaterialCorrectionTable = std::array<std::array<int32_t, 32768>, 2>;
 	using PawnsCorrectionTable = std::array<std::array<int32_t, 16384>, 2>;
 	using FollowUpCorrectionTable = std::array<std::array<std::array<std::array<int32_t, 64>, 14>, 64>, 14>;
+    using StripedCorrectionTable = std::array<std::array<std::array<int32_t, 16384>, 2>, 2>;
 	MaterialCorrectionTable MaterialCorrectionHistory;
 	PawnsCorrectionTable PawnsCorrectionHistory;
 	FollowUpCorrectionTable FollowUpCorrectionHistory;
+    StripedCorrectionTable StripedCorrectionHistory;
 };
 

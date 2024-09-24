@@ -269,3 +269,15 @@ uint64_t Board::CalculateMaterialKey() const {
 
     return MurmurHash3(material_key);
 }
+
+std::tuple<uint64_t, uint64_t, uint64_t, uint64_t> Board::CalculateStripeKeys() const {
+    uint64_t WhiteOccupancy = WhitePawnBits | WhiteKnightBits | WhiteBishopBits | WhiteRookBits | WhiteQueenBits | WhiteKingBits;
+    uint64_t BlackOccupancy = BlackPawnBits | BlackKnightBits | BlackBishopBits | BlackRookBits | BlackQueenBits | BlackKingBits;
+
+    return {
+            MurmurHash3(WhiteOccupancy & 0xf0f0f0f0f0f0f0f0ull),
+            MurmurHash3(WhiteOccupancy & 0xf0f0f0f0f0f0f0full),
+            MurmurHash3(BlackOccupancy & 0xf0f0f0f0f0f0f0f0ull),
+            MurmurHash3(BlackOccupancy & 0xf0f0f0f0f0f0f0full),
+    };
+}

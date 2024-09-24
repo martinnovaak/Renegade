@@ -128,6 +128,10 @@ public:
 		return MurmurHash3(WhitePawnBits()) ^ MurmurHash3(BlackPawnBits() ^ Zobrist[780]);
 	}
 
+    inline std::tuple<uint64_t, uint64_t, uint64_t, uint64_t> GetStripeKeys() const {
+        return States.back().CalculateStripeKeys();
+    }
+
 	uint64_t AttackersOfSquare(const bool attackingSide, const uint8_t square) const;
 
 	inline uint64_t WhitePawnBits() const { return States.back().WhitePawnBits; }

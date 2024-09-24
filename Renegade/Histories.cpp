@@ -12,6 +12,7 @@ void Histories::ClearAll() {
     std::memset(&MaterialCorrectionHistory, 0, sizeof(MaterialCorrectionTable));
     std::memset(&PawnsCorrectionHistory, 0, sizeof(PawnsCorrectionTable));
     std::memset(&FollowUpCorrectionHistory, 0, sizeof(FollowUpCorrectionTable));
+    std::memset(&StripedCorrectionHistory, 0, sizeof(StripedCorrectionTable));
 }
 
 void Histories::ClearKillerAndCounterMoves() {
@@ -122,6 +123,23 @@ void Histories::UpdateCorrection(const Position& position, const int16_t rawEval
 		followUpValue = ((256 - weight) * followUpValue + weight * diff) / 256;
 		followUpValue = std::clamp(followUpValue, -6144, 6144);
 	}
+
+    const auto [wkStripe, wqStripe, bkStripe, bqStripe] = position.GetStripeKeys();
+
+    auto correct_stripe = [&](int32_t& stripe_value, int weight, int32_t diff) {
+        stripe_value = ((256 - weight) * stripe_value + weight * diff) / 256;
+        stripe_value = std::clamp(stripe_value, -4096, 4096);
+    };
+
+    int32_t& wkValue = StripedCorrectionHistory[position.Turn()][0][wkStripe % 16384];
+    int32_t& wqValue = StripedCorrectionHistory[position.Turn()][0][wqStripe % 16384];
+    int32_t& bkValue = StripedCorrectionHistory[position.Turn()][1][bkStripe % 16384];
+    int32_t& bqValue = StripedCorrectionHistory[position.Turn()][1][bqStripe % 16384];
+
+    correct_stripe(wkValue, weight, diff);
+    correct_stripe(wqValue, weight, diff);
+    correct_stripe(bkValue, weight, diff);
+    correct_stripe(bqValue, weight, diff);
 }
 
 int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEval) const {
@@ -141,6 +159,13 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 		return FollowUpCorrectionHistory[prev2.piece][prev2.move.to][prev1.piece][prev1.move.to] / 256;
 	}();
 
-	const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection) * 2 / 3;
+    const auto [wkStripe, wqStripe, bkStripe, bqStripe] = position.GetStripeKeys();
+    const int32_t wkValue = StripedCorrectionHistory[position.Turn()][0][wkStripe % 16384];
+    const int32_t wqValue = StripedCorrectionHistory[position.Turn()][0][wqStripe % 16384];
+    const int32_t bkValue = StripedCorrectionHistory[position.Turn()][1][bkStripe % 16384];
+    const int32_t bqValue = StripedCorrectionHistory[position.Turn()][1][bqStripe % 16384];
+    const int32_t stripeValue = (wkValue + wqValue + bkValue + bqValue) / 4;
+
+    const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection + stripeValue) * 2 / 3;
     return std::clamp(correctedEval, -MateThreshold + 1, MateThreshold - 1);
 }
