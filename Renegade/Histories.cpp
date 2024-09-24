@@ -164,7 +164,7 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
     const int32_t wqValue = StripedCorrectionHistory[position.Turn()][0][wqStripe % 16384];
     const int32_t bkValue = StripedCorrectionHistory[position.Turn()][1][bkStripe % 16384];
     const int32_t bqValue = StripedCorrectionHistory[position.Turn()][1][bqStripe % 16384];
-    const int32_t stripeValue = (wkValue + wqValue + bkValue + bqValue) / 4;
+    const int32_t stripeValue = (wkValue + wqValue + bkValue + bqValue) / (4 * 256);
 
     const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection + stripeValue) * 2 / 3;
     return std::clamp(correctedEval, -MateThreshold + 1, MateThreshold - 1);
