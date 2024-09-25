@@ -140,7 +140,7 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 	const int pawnCorrection = PawnsCorrectionHistory[position.Turn()][pawnKey] / 256;
 
     const uint64_t majorKey = position.GetMajorKey() % 16384;
-    const int32_t majorValue = MajorCorrectionHistory[position.Turn()][majorKey];
+    const int32_t majorValue = MajorCorrectionHistory[position.Turn()][majorKey] / 256;
 
 	const int lastMoveCorrection = [&] {
 		if (position.Moves.size() < 2) return 0;
