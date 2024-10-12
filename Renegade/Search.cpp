@@ -70,7 +70,7 @@ Results Search::SearchSinglethreaded(const Position& pos, const SearchParams& pa
 	t.CurrentPosition = pos;
 	t.result = {};
 	t.ResetStatistics();
-	Constraints = CalculateConstraints(params, pos.Turn());
+	Constraints = CalculateConstraints(params, pos.Turn(), pos.GetMoveCount());
 
 	SearchMoves(t);
 	t.singlethreaded = false;
@@ -102,7 +102,7 @@ void Search::StartSearch(Position& position, const SearchParams params, const bo
 		return; // Results(eval, 1, 1, 0, 0, 0, 0, position.GetPly(), { onlyMove });
 	}
 
-	Constraints = CalculateConstraints(params, position.Turn());
+	Constraints = CalculateConstraints(params, position.Turn(), position.GetMoveCount());
 
 	// Fire up the threads
 	Aborting.store(false);
@@ -141,7 +141,7 @@ void Search::WaitUntilReady() const {
 
 // Time management --------------------------------------------------------------------------------
 
-SearchConstraints Search::CalculateConstraints(const SearchParams params, const bool turn) const {
+SearchConstraints Search::CalculateConstraints(const SearchParams params, const bool turn, const int moveCount) const {
 	SearchConstraints constraints;
 
 	// Handle nodes, depth, movetime 
@@ -169,8 +169,9 @@ SearchConstraints Search::CalculateConstraints(const SearchParams params, const 
 		}
 		else {
 			// Time control with increment
-			minTime = static_cast<int>(myTime * 0.023 + myInc * 0.7);
-			maxTime = static_cast<int>(myTime * 0.25);
+            double timeDivider = 40 * std::pow(1.0 + 1.5 * std::pow(double(moveCount) / 40, 2), 0.5) - moveCount;
+			minTime = static_cast<int>(0.8 * (myTime / timeDivider + myInc));
+			maxTime = static_cast<int>(myTime / std::log(timeDivider) + myInc);
 		}
 
 		constraints.SearchTimeMin = std::min(minTime, maxTime);

@@ -135,7 +135,7 @@ private:
 
 	int Evaluate(const ThreadData& t, const Position& position, const int level);
 	uint64_t PerftRecursive(Position& position, const int depth, const int originalDepth, const PerftType type) const;
-	SearchConstraints CalculateConstraints(const SearchParams params, const bool turn) const;
+	SearchConstraints CalculateConstraints(const SearchParams params, const bool turn, const int moveCount) const;
 	bool ShouldAbort(const ThreadData& t);
 	int DrawEvaluation(const ThreadData& t) const;
 
