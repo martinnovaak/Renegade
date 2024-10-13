@@ -170,8 +170,8 @@ SearchConstraints Search::CalculateConstraints(const SearchParams params, const 
 		else {
 			// Time control with increment
             double timeDivider = 40 * std::pow(1.0 + 1.5 * std::pow(double(moveCount) / 40, 2), 0.5) - moveCount;
-			minTime = static_cast<int>(0.8 * (myTime / timeDivider + myInc));
-			maxTime = static_cast<int>(myTime / std::log(timeDivider) + myInc);
+			minTime = std::min(static_cast<int>(0.8 * (myTime / timeDivider + myInc)), myTime / 3);
+			maxTime = std::min(static_cast<int>(myTime / std::log(timeDivider) + myInc), myTime / 2);
 		}
 
 		constraints.SearchTimeMin = std::min(minTime, maxTime);
@@ -284,7 +284,7 @@ void Search::SearchMoves(ThreadData& t) {
 				const Move& bestMove = t.PvTable[0][0];
 				const double bestMoveFraction = static_cast<double>(t.RootNodeCounts[bestMove.from][bestMove.to]) / static_cast<double>(t.Nodes);
 				const int adjustedSoftTimeLimit = originalSoftTimeLimit * static_cast<float>(t.Depth >= 10 ? (1.5 - bestMoveFraction) * 1.35 : 1.0);
-				if (elapsedMs >= adjustedSoftTimeLimit) finished = true;
+				if (elapsedMs >= std::min(adjustedSoftTimeLimit, Constraints.SearchTimeMax)) finished = true;
 			}
 		}
 
