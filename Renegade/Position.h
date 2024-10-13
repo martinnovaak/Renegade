@@ -129,11 +129,11 @@ public:
 	}
 
     inline uint64_t GetWhiteNonpawnKey() const {
-        return (MurmurHash3(WhiteKnightBits()) ^ MurmurHash3(WhiteBishopBits()) ^ MurmurHash3(WhiteRookBits()) ^ MurmurHash3(WhiteQueenBits()));
+        return (MurmurHash3(WhiteKnightBits() | WhiteBishopBits() | WhiteRookBits() | WhiteQueenBits()));
     }
 
     inline uint64_t GetBlackNonpawnKey() const {
-        return (MurmurHash3(BlackKnightBits()) ^ MurmurHash3(BlackBishopBits()) ^ MurmurHash3(BlackRookBits()) ^ MurmurHash3(BlackQueenBits()));
+        return (MurmurHash3(BlackKnightBits() | BlackBishopBits() | BlackRookBits() | BlackQueenBits()));
     }
 
 	uint64_t AttackersOfSquare(const bool attackingSide, const uint8_t square) const;
