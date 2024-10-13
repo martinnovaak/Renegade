@@ -145,10 +145,10 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 	const int pawnCorrection = PawnsCorrectionHistory[position.Turn()][pawnKey] / 256;
 
     const uint64_t whiteNonpawnKey = position.GetWhiteNonpawnKey() % 16384;
-    const int32_t whiteNonpawnCorrection = NonpawnCorrectionHistory[position.Turn()][0][whiteNonpawnKey];
+    const int32_t whiteNonpawnCorrection = NonpawnCorrectionHistory[position.Turn()][0][whiteNonpawnKey] / 256;
 
     const uint64_t blackNonpawnKey = position.GetBlackNonpawnKey() % 16384;
-    const int32_t blackNonpawnCorrection = NonpawnCorrectionHistory[position.Turn()][1][blackNonpawnKey];
+    const int32_t blackNonpawnCorrection = NonpawnCorrectionHistory[position.Turn()][1][blackNonpawnKey] / 256;
     const int32_t nonpawnCorrection = whiteNonpawnCorrection + blackNonpawnCorrection;
 
 	const int lastMoveCorrection = [&] {
