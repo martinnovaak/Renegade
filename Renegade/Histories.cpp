@@ -12,6 +12,7 @@ void Histories::ClearAll() {
     std::memset(&MaterialCorrectionHistory, 0, sizeof(MaterialCorrectionTable));
     std::memset(&PawnsCorrectionHistory, 0, sizeof(PawnsCorrectionTable));
     std::memset(&FollowUpCorrectionHistory, 0, sizeof(FollowUpCorrectionTable));
+    std::memset(&NonpawnCorrectionHistory, 0, sizeof(NonpawnCorrectionTable));
 }
 
 void Histories::ClearKillerAndCounterMoves() {
@@ -122,6 +123,16 @@ void Histories::UpdateCorrection(const Position& position, const int16_t rawEval
 		followUpValue = ((256 - weight) * followUpValue + weight * diff) / 256;
 		followUpValue = std::clamp(followUpValue, -6144, 6144);
 	}
+
+    const uint64_t whiteNonpawnKey = position.GetWhiteNonpawnKey() % 16384;
+    int32_t& whiteNonpawnValue = NonpawnCorrectionHistory[position.Turn()][0][whiteNonpawnKey];
+    whiteNonpawnValue = ((256 - weight) * whiteNonpawnValue + weight * diff) / 256;
+    whiteNonpawnValue = std::clamp(whiteNonpawnValue, -6144, 6144);
+
+    const uint64_t blackNonpawnKey = position.GetBlackNonpawnKey() % 16384;
+    int32_t& blackNonpawnValue = NonpawnCorrectionHistory[position.Turn()][1][blackNonpawnKey];
+    blackNonpawnValue = ((256 - weight) * blackNonpawnValue + weight * diff) / 256;
+    blackNonpawnValue = std::clamp(blackNonpawnValue, -6144, 6144);
 }
 
 int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEval) const {
@@ -133,6 +144,12 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 	const uint64_t pawnKey = position.GetPawnKey() % 16384;
 	const int pawnCorrection = PawnsCorrectionHistory[position.Turn()][pawnKey] / 256;
 
+    const uint64_t whiteNonpawnKey = position.GetWhiteNonpawnKey() % 16384;
+    const int32_t whiteNonpawnCorrection = NonpawnCorrectionHistory[position.Turn()][0][whiteNonpawnKey];
+
+    const uint64_t blackNonpawnKey = position.GetBlackNonpawnKey() % 16384;
+    const int32_t blackNonpawnCorrection = NonpawnCorrectionHistory[position.Turn()][1][blackNonpawnKey];
+    const int32_t nonpawnCorrection = whiteNonpawnCorrection + blackNonpawnCorrection;
 
 	const int lastMoveCorrection = [&] {
 		if (position.Moves.size() < 2) return 0;
@@ -141,6 +158,6 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 		return FollowUpCorrectionHistory[prev2.piece][prev2.move.to][prev1.piece][prev1.move.to] / 256;
 	}();
 
-	const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection) * 2 / 3;
+	const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection + nonpawnCorrection) * 2 / 3;
     return std::clamp(correctedEval, -MateThreshold + 1, MateThreshold - 1);
 }

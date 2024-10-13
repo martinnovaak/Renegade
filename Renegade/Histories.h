@@ -56,9 +56,11 @@ private:
 	// Evaluation correction history:
 	using MaterialCorrectionTable = std::array<std::array<int32_t, 32768>, 2>;
 	using PawnsCorrectionTable = std::array<std::array<int32_t, 16384>, 2>;
+    using NonpawnCorrectionTable = std::array<std::array<std::array<int32_t, 16384>, 2>, 2>;
 	using FollowUpCorrectionTable = std::array<std::array<std::array<std::array<int32_t, 64>, 14>, 64>, 14>;
 	MaterialCorrectionTable MaterialCorrectionHistory;
 	PawnsCorrectionTable PawnsCorrectionHistory;
 	FollowUpCorrectionTable FollowUpCorrectionHistory;
+    NonpawnCorrectionTable NonpawnCorrectionHistory;
 };
 

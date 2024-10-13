@@ -128,6 +128,14 @@ public:
 		return MurmurHash3(WhitePawnBits()) ^ MurmurHash3(BlackPawnBits() ^ Zobrist[780]);
 	}
 
+    inline uint64_t GetWhiteNonpawnKey() const {
+        return (MurmurHash3(WhiteKnightBits()) ^ MurmurHash3(WhiteBishopBits()) ^ MurmurHash3(WhiteRookBits()) ^ MurmurHash3(WhiteQueenBits()));
+    }
+
+    inline uint64_t GetBlackNonpawnKey() const {
+        return (MurmurHash3(BlackKnightBits()) ^ MurmurHash3(BlackBishopBits()) ^ MurmurHash3(BlackRookBits()) ^ MurmurHash3(BlackQueenBits()));
+    }
+
 	uint64_t AttackersOfSquare(const bool attackingSide, const uint8_t square) const;
 
 	inline uint64_t WhitePawnBits() const { return States.back().WhitePawnBits; }
