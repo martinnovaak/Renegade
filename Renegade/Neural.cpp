@@ -107,7 +107,7 @@ void UpdateAccumulator(const Position& pos, const AccumulatorRepresentation& old
 	if (TypeOfPiece(movedPiece) == PieceType::King) {
 		const bool side = ColorOfPiece(movedPiece) == PieceColor::White ? Side::White : Side::Black;
 		if (IsRefreshRequired(m, side)) {
-			newAcc.Refresh(pos);
+			newAcc.Refresh(pos, side);
 			return;
 		}
 	}
