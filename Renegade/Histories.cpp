@@ -159,7 +159,7 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
     const int lastMoveCorrection31 = [&] {
         if (position.Moves.size() < 3) return 0;
         const MoveAndPiece& prev1 = position.GetPreviousMove(1);
-        const MoveAndPiece& prev3 = position.GetPreviousMove(2);
+        const MoveAndPiece& prev3 = position.GetPreviousMove(3);
         return FollowUpCorrectionHistory[prev3.piece][prev3.move.to][prev1.piece][prev1.move.to] / 256;
     }();
 
