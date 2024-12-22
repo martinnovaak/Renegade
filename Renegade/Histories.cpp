@@ -129,6 +129,13 @@ void Histories::UpdateCorrection(const Position& position, const int16_t rawEval
 		int32_t& followUpValue = FollowUpCorrectionHistory[prev2.piece][prev2.move.to][prev1.piece][prev1.move.to];
 		followUpValue = ((256 - weight) * followUpValue + weight * diff) / 256;
 		followUpValue = std::clamp(followUpValue, -6144, 6144);
+
+        if (position.Moves.size() >= 3) {
+            const MoveAndPiece &prev3 = position.GetPreviousMove(3);
+            int32_t &followUpValue31 = FollowUpCorrectionHistory[prev3.piece][prev3.move.to][prev1.piece][prev1.move.to];
+            followUpValue31 = ((256 - weight) * followUpValue31 + weight * diff) / 256;
+            followUpValue31 = std::clamp(followUpValue31, -6144, 6144);
+        }
 	}
 }
 
@@ -149,6 +156,13 @@ int16_t Histories::ApplyCorrection(const Position& position, const int16_t rawEv
 		return FollowUpCorrectionHistory[prev2.piece][prev2.move.to][prev1.piece][prev1.move.to] / 256;
 	}();
 
-	const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection) * 2 / 3;
+    const int lastMoveCorrection31 = [&] {
+        if (position.Moves.size() < 3) return 0;
+        const MoveAndPiece& prev1 = position.GetPreviousMove(1);
+        const MoveAndPiece& prev3 = position.GetPreviousMove(2);
+        return FollowUpCorrectionHistory[prev3.piece][prev3.move.to][prev1.piece][prev1.move.to] / 256;
+    }();
+
+	const int correctedEval = rawEval + (materialCorrection + pawnCorrection + lastMoveCorrection + lastMoveCorrection31) * 2 / 3;
 	return std::clamp(correctedEval, -MateThreshold + 1, MateThreshold - 1);
 }
