@@ -109,19 +109,19 @@ void Histories::UpdateCorrection(const Position& position, const int16_t rawEval
 	const uint64_t materialKey = position.GetMaterialKey() % 32768;
 	int32_t& materialValue = MaterialCorrectionHistory[position.Turn()][materialKey];
 	materialValue = ((256 - weight) * materialValue + weight * diff) / 256;
-	materialValue = std::clamp(materialValue, -6144, 6144);
+	materialValue = std::clamp(materialValue, -8192, 8192);
 
 	const uint64_t pawnKey = position.GetPawnKey() % 16384;
 	int32_t& pawnValue = PawnsCorrectionHistory[position.Turn()][pawnKey];
 	pawnValue = ((256 - weight) * pawnValue + weight * diff) / 256;
-	pawnValue = std::clamp(pawnValue, -6144, 6144);
+	pawnValue = std::clamp(pawnValue, -8192, 8192);
 
 	if (position.Moves.size() >= 2) {
 		const MoveAndPiece& prev1 = position.GetPreviousMove(1);
 		const MoveAndPiece& prev2 = position.GetPreviousMove(2);
 		int32_t& followUpValue = FollowUpCorrectionHistory[prev2.piece][prev2.move.to][prev1.piece][prev1.move.to];
 		followUpValue = ((256 - weight) * followUpValue + weight * diff) / 256;
-		followUpValue = std::clamp(followUpValue, -6144, 6144);
+		followUpValue = std::clamp(followUpValue, -8192, 8192);
 	}
 }
 
